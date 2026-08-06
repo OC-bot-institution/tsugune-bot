@@ -2,7 +2,9 @@ import json
 from pathlib import Path
 import random
 import asyncio
-
+import re
+from itertools import product
+import unicodedata
 
 def load_json(filename):
     path = Path(__file__).parent / filename
@@ -20,10 +22,51 @@ mention = phrases["mention"]
 #ユーザー
 names = load_json("users.json")
 name = ""
+
+#キーワード
+keywords = load_json("keywords.json")
+
 # 待ち時間設定
 base = 0.8
 per_char = 0.1
 
+
+def normalize(text: str) -> str:
+    text = unicodedata.normalize("NFKC", text)
+    text = text.lower()
+    text = re.sub(r"[!！?？〜～ー\-…・、。,\.\s]", "", text)
+    return text
+
+
+def expand_keys(keys: list[str], keywords: dict) -> list[str]:
+    expanded = []
+
+    for key in keys:
+
+        # &で始まるキーワードをすべて取得
+        tokens = re.findall(r"&([^&]+)&", key)
+
+        if not tokens:
+            expanded.append(key)
+            continue
+
+        # 各トークンの候補一覧
+        candidates = []
+        for token in tokens:
+            if token in keywords:
+                candidates.append(keywords[token])
+            else:
+                # 定義されていないものはそのまま残す
+                candidates.append([f"&{token}"])
+
+        # 全組み合わせを生成
+        for words in product(*candidates):
+            result = key
+            for token, word in zip(tokens, words):
+                result = result.replace(f"&{token}&", word, 1)
+            expanded.append(result)
+
+    return expanded
 
 
 def init(message):
@@ -47,16 +90,14 @@ async def mention_reply(message):
 
 #共通関数
 async def special_reply(message, rules, judge):
-    text = message.content
-
-
+    text = normalize(message.content)
 
     for rule in rules:
 
         if random.random() > rule["probability"]:
             continue
-
-        if any(judge(text, key) for key in rule["keys"]):
+        keys = expand_keys(rule["keys"], keywords)
+        if any(judge(text, normalize(key)) for key in keys):
             reply = random.choice(rule["replies"])
             wait = base + len(reply) * per_char + random.uniform(0, 1.2)
             reply = reply.replace("&user", name)
@@ -115,3 +156,4 @@ def contains_in_order(text: str, pattern: str) -> bool:
             if index == len(pattern):
                 return True
     return False
+
