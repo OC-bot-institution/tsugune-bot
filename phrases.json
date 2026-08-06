@@ -31,7 +31,7 @@
         {
             "keys": ["暑すぎ"],
             "replies": ["ま じ で そ れ"],
-            "probability": 1
+            "probability": 0.8
         },
         {
             "keys": ["偉いな","えらいな"],
