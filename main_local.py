@@ -53,31 +53,31 @@ async def on_message(message):
     
 
 
-    init(message)
-    if bot.user in message.mentions:
-        await mention_reply(message)
+    # init(message)
+    # if bot.user in message.mentions:
+    #     await mention_reply(message)
 
-    if await special_reply_exact(message):
-        return
-    if await special_reply_contains(message):
-        return
-    if await special_reply_endswith(message):
-        return
-    if await special_reply_ordered(message):
-        return
+    # if await special_reply_exact(message):
+    #     return
+    # if await special_reply_contains(message):
+    #     return
+    # if await special_reply_endswith(message):
+    #     return
+    # if await special_reply_ordered(message):
+    #     return
 
-    if message.channel.id not in ACTIVE_CHANNELS:
-        #反応確率：30%
-        if random.random() >= REPLY_PROBABILITY:
-            return
+    # if message.channel.id not in ACTIVE_CHANNELS:
+    #     #反応確率：30%
+    #     if random.random() >= REPLY_PROBABILITY:
+    #         return
         
-    phrase = extract_phrase(message.content)
-    if phrase:
-        await message.reply(
-            f"僕は...僕は...{phrase}って言ったじゃないか！！！",
-            mention_author=False
-        )
-    await bot.process_commands(message)
+    # phrase = extract_phrase(message.content)
+    # if phrase:
+    #     await message.reply(
+    #         f"僕は...僕は...{phrase}って言ったじゃないか！！！",
+    #         mention_author=False
+    #     )
+    # await bot.process_commands(message)
 
 @bot.tree.command(
     name="sleep",
