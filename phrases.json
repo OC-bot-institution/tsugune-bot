@@ -29,7 +29,7 @@
             "probability": 1
         },
         {
-            "keys": ["暑すぎ"],
+            "keys": ["暑い","暑すぎ"],
             "replies": ["ま じ で そ れ"],
             "probability": 0.8
         },
