@@ -56,6 +56,7 @@ async def on_message(message):
 
     if message.channel.id not in ACTIVE_CHANNELS:
         if random.random() >= REPLY_PROBABILITY:
+            print("確率によりミュート")
             return
 
     if await special_reply_exact(message):
