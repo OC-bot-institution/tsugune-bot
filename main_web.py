@@ -16,15 +16,27 @@ from zoneinfo import ZoneInfo
 #初期設定
 #==============================
 REPLY_PROBABILITY = 0.1
+
+
+# 毎日おはよう設定
+TARGET_CHANNEL_IDS = [
+    123456789012345678,
+    234567890123456789,
+    345678901234567890,
+]
+NORMAL_PROBABILITY = 0.12
+NEBOU_PROBABILITY = 0.02
+HAYAI_PROBABILITY = 0.02
+
+JST = ZoneInfo("Asia/Tokyo")
+#==============================
+
 channels = load_json("channels.json")
 ACTIVE_CHANNELS = {
     int(channel_id)
     for channel_id in channels
 }
 daily_message_task = None
-#==============================
-
-
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
@@ -40,17 +52,6 @@ bot = commands.Bot(
     intents=intents
 )
 
-# 時刻の設定
-JST = ZoneInfo("Asia/Tokyo")
-# 特定メッセージを送るチャンネルID
-TARGET_CHANNEL_IDS = [
-    123456789012345678,
-    234567890123456789,
-    345678901234567890,
-]
-NORMAL_PROBABILITY = 0.15
-NEBOU_PROBABILITY = 0.05
-HAYAI_PROBABILITY = 0.05
 
 
 # 決まった時間の固定メッセージ
