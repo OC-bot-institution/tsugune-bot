@@ -2,19 +2,27 @@ import discord
 import os
 from dotenv import load_dotenv
 from extract_phrase import extract_phrase
-from special_reply import init,special_reply_exact,special_reply_contains,special_reply_endswith,special_reply_ordered,mention_reply
 
 from discord.ext import commands
-from discord.ext import tasks
 import asyncio
 import random
 from util import load_json
 
+from common.special_reply import (
+    get_user_name,
+    special_reply_exact,
+    special_reply_contains,
+    special_reply_endswith,
+    special_reply_ordered,
+    mention_reply,
+)
 
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 #初期設定
 #==============================
+
+# 基本の反応確率
 REPLY_PROBABILITY = 0.1
 
 
@@ -27,21 +35,36 @@ TARGET_CHANNEL_IDS = [
 NORMAL_PROBABILITY = 0.12
 NEBOU_PROBABILITY = 0.02
 HAYAI_PROBABILITY = 0.02
-
 JST = ZoneInfo("Asia/Tokyo")
-#==============================
+daily_message_task = None
 
+
+# アクティブチャンネル
 channels = load_json("channels.json")
 ACTIVE_CHANNELS = {
     int(channel_id)
     for channel_id in channels
 }
-daily_message_task = None
 
+# API
 load_dotenv()
 api_key = os.getenv("API_KEY")
 
 bot_status = "awake"
+
+
+
+# 読み込み
+phrases = load_json("phrases.json")
+keywords = load_json("keywords.json")
+names = load_json("users.json")
+
+exact = phrases["exact"]
+contains = phrases["contains"]
+endswith = phrases["endswith"]
+ordered = phrases["ordered"]
+mentions = phrases["mention"]
+
 
 # インテントの生成
 intents = discord.Intents.default()
@@ -51,7 +74,7 @@ bot = commands.Bot(
     command_prefix="!",
     intents=intents
 )
-
+#==============================
 
 
 # 決まった時間の固定メッセージ
@@ -126,6 +149,8 @@ async def daily_message():
             phrase += "（大寝坊して無事終了）"
         elif status == "hayai":
             phrase += "（ありえない時間に目が覚めすぎている）"
+        elif status == "none":
+            continue
         await channel.send(phrase)
 
 # メッセージを受信した時に呼ばれる
@@ -136,22 +161,24 @@ async def on_message(message):
     if bot_status == "sleep":
         return
 
-    init(message)
+    user_name = get_user_name(message,names)
+
     if bot.user in message.mentions:
-        await mention_reply(message)
+        await mention_reply(message,mentions,user_name)
+        return
 
     if message.channel.id not in ACTIVE_CHANNELS:
         # 確率で反応しない
         if random.random() >= REPLY_PROBABILITY:
             return
 
-    if await special_reply_exact(message):
+    if await special_reply_exact(message,exact,keywords,user_name):
         return
-    if await special_reply_contains(message):
+    if await special_reply_contains(message,contains,keywords,user_name):
         return
-    if await special_reply_endswith(message):
+    if await special_reply_endswith(message,endswith,keywords,user_name):
         return
-    if await special_reply_ordered(message):
+    if await special_reply_ordered(message,ordered,keywords,user_name):
         return
 
 
