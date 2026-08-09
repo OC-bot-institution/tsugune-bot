@@ -21,6 +21,7 @@ ACTIVE_CHANNELS = {
     int(channel_id)
     for channel_id in channels
 }
+daily_message_task = None
 #==============================
 
 
@@ -173,6 +174,7 @@ async def sleep(interaction: discord.Interaction):
 # discordと接続した時に呼ばれる
 @bot.event
 async def on_ready():
+    global daily_message_task
     await bot.tree.sync()
 
     if daily_message_task is None or daily_message_task.done():
