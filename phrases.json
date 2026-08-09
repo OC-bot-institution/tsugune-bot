@@ -117,11 +117,6 @@
             "keys":["&tsugune&推し"],
             "replies":["え...！ありがとう...(照)"],
             "probability":0.2
-        },
-        {
-            "keys":["&tsugune&イケボ"],
-            "replies":["イケボ！？嬉しい！！（中の人はそんなこと言われると毎回大照れしてるらしいよ）"],
-            "probability":0.5
         }
     ],
     "mention": {
