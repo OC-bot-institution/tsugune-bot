@@ -48,9 +48,9 @@ TARGET_CHANNEL_IDS = [
     234567890123456789,
     345678901234567890,
 ]
-DAILY_PROBABILITY = 0.15
-NEBOU_PROBABILITY = 0.1
-HAYAI_PROBABILITY = 0.1
+NORMAL_PROBABILITY = 0.15
+NEBOU_PROBABILITY = 0.05
+HAYAI_PROBABILITY = 0.05
 
 
 # 決まった時間の固定メッセージ
@@ -58,31 +58,43 @@ HAYAI_PROBABILITY = 0.1
 async def daily_message():
     while True:
         now = datetime.now(JST)
-        nebou = False
-        hayai = False
 
         # 今日の07:00を基準にする
-        target = now.replace(
+        base_time = now.replace(
             hour=7,
             minute=0,
             second=0,
             microsecond=0
         )
 
-        # ±30分をランダムにする
-        offset = random.randint(-30, 30)
-        target += timedelta(minutes=offset)
+        status = "none"
+        probability = random.random()
 
-        # 確率でやばい時間にしよう
-        if random.random() <= NEBOU_PROBABILITY:
+        # 寝坊
+        if probability < NEBOU_PROBABILITY:
             offset = random.randint(180, 210)
-            target += timedelta(minutes=offset)
-            nebou = True
-        elif random.random() <= HAYAI_PROBABILITY:
-            offset = random.randint(-210, -180)
-            target += timedelta(minutes=offset)
-            hayai = True
+            status = "nebou"
 
+        # 早起き
+        elif probability < NEBOU_PROBABILITY + HAYAI_PROBABILITY:
+            offset = random.randint(-210, -180)
+            status = "hayai"
+
+        # 通常
+        elif probability < (
+            NEBOU_PROBABILITY
+            + HAYAI_PROBABILITY
+            + NORMAL_PROBABILITY
+        ):
+            offset = random.randint(-30, 30)
+            status = "normal"
+
+        # それ以外は送信しない
+        else:
+            offset = random.randint(-30, 30)
+            status = "none"
+
+        target = base_time + timedelta(minutes=offset)
         # すでに実行時刻を過ぎていたら明日の07:00を基準にする
         if target <= now:
             target += timedelta(days=1)
@@ -93,6 +105,7 @@ async def daily_message():
         print(
             f"次回の定期メッセージ: "
             f"{target.strftime('%Y-%m-%d %H:%M:%S')}"
+            f"status : {status}"
         )
 
         await asyncio.sleep(wait_seconds)
@@ -104,14 +117,13 @@ async def daily_message():
         if channel is None:
             print(f"チャンネルが見つかりません: {channel_id}")
             continue
-        if random.random() >= DAILY_PROBABILITY:
-            continue
+
         phrase = random.choice(
             ["おはつぐ～！！","おはつぐ！","おはつぐ☀️"]
         )
-        if nebou:
+        if status == "nebou":
             phrase += "（大寝坊して無事終了）"
-        elif hayai:
+        elif status == "hayai":
             phrase += "（ありえない時間に目が覚めすぎている）"
         await channel.send(phrase)
 
