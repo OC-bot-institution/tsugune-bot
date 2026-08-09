@@ -8,8 +8,7 @@ from discord.ext import commands
 from discord.ext import tasks
 import asyncio
 import random
-import json
-from pathlib import Path
+from util import load_json
 
 
 from datetime import datetime, timedelta
@@ -17,8 +16,11 @@ from zoneinfo import ZoneInfo
 #初期設定
 #==============================
 REPLY_PROBABILITY = 0.1
-#らいな雑談、くらうどーむ雑談、らいな雑談2、創作雑談、くらうどーむメモ、一般
-ACTIVE_CHANNELS = {1456597613926154452,1468960224730943560,1526572399833911296,1438885241170428068,1533682775448883260,1534055479049981974}
+channels = load_json("channels.json")
+ACTIVE_CHANNELS = {
+    int(channel_id)
+    for channel_id in channels
+}
 #==============================
 
 
@@ -119,14 +121,13 @@ async def on_message(message):
         return
     if bot_status == "sleep":
         return
-    
-
 
     init(message)
     if bot.user in message.mentions:
         await mention_reply(message)
 
     if message.channel.id not in ACTIVE_CHANNELS:
+        # 確率で反応しない
         if random.random() >= REPLY_PROBABILITY:
             return
 

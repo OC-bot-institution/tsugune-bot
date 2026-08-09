@@ -1,15 +1,11 @@
-import json
-from pathlib import Path
+
+from util import load_json
 import random
 import asyncio
 import re
 from itertools import product
 import unicodedata
 
-def load_json(filename):
-    path = Path(__file__).parent / filename
-    with open(path, "r", encoding="utf-8") as f:
-        return json.load(f)
     
 #フレーズ
 phrases = load_json("phrases.json")
