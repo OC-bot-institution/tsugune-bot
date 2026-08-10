@@ -6,9 +6,8 @@ from extract_phrase import extract_phrase
 from discord.ext import commands
 import asyncio
 import random
-from util import load_json
 
-from common.special_reply import (
+from bot_common.special_reply import (
     get_user_name,
     special_reply_exact,
     special_reply_contains,
@@ -16,6 +15,11 @@ from common.special_reply import (
     special_reply_ordered,
     mention_reply,
 )
+
+from bot_common.util import (
+    load_json
+)
+
 
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
