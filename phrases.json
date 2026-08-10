@@ -6,7 +6,7 @@
             "probability": 0.5
         },
         {
-            "keys": ["&tsugune&"],
+            "keys": ["&tsugune&&call&"],
             "replies": ["はい！！！！！！(絶対に呼ばれたので来た)"],
             "probability": 1
         }
