@@ -2,7 +2,7 @@ from sudachipy import Dictionary
 
 tokenizer = Dictionary().create()
 
-
+EXCLUDED_PREFIXES = {"」"}
 def extract_phrase(text: str):
     tokens = list(tokenizer.tokenize(text))
 
@@ -13,6 +13,10 @@ def extract_phrase(text: str):
             continue
 
         start = i - 1
+
+        if tokens[start].surface() in EXCLUDED_PREFIXES:
+            continue
+
         end = i + 1
 
         found_verb = False
