@@ -17,6 +17,7 @@ from bot_common.special_reply import (
 )
 
 from bot_common.util import (
+    load_common_json,
     load_json
 )
 
@@ -44,7 +45,7 @@ daily_message_task = None
 
 
 # アクティブチャンネル
-channels = load_json("channels.json")
+channels = load_common_json("channels.json")
 ACTIVE_CHANNELS = {
     int(channel_id)
     for channel_id in channels
@@ -60,8 +61,8 @@ bot_status = "awake"
 
 # 読み込み
 phrases = load_json("phrases.json")
-keywords = load_json("keywords.json")
-names = load_json("users.json")
+keywords = load_common_json("keywords.json")
+names = load_common_json("users.json")
 
 exact = phrases["exact"]
 contains = phrases["contains"]
