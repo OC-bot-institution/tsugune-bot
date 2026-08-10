@@ -2,7 +2,7 @@ from sudachipy import Dictionary
 
 tokenizer = Dictionary().create()
 
-EXCLUDED_PREFIXES = {"」","くん","の","いな","こと","み"}
+EXCLUDED_PREFIXES = {"」","くん","の","いな","こと","み","ちゃん"}
 def extract_phrase(text: str):
     tokens = list(tokenizer.tokenize(text))
 
