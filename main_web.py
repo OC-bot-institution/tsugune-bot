@@ -2,6 +2,10 @@ import discord
 import os
 from dotenv import load_dotenv
 from extract_phrase import extract_phrase
+from message_count import (
+    initialize_message_counts,
+    save_message_counts
+)
 
 from discord.ext import commands
 import asyncio
@@ -18,7 +22,7 @@ from bot_common.special_reply import (
 
 from bot_common.util import (
     load_common_json,
-    load_json
+    load_json,
 )
 from bot_common.daily_message import daily_message_loop
 
@@ -46,11 +50,7 @@ daily_message_task = None
 
 
 # アクティブチャンネル
-channels = load_common_json("channels.json")
-ACTIVE_CHANNELS = {
-    int(channel_id)
-    for channel_id in channels
-}
+ACTIVE_CHANNELS = load_common_json("channels.json")
 
 # API
 load_dotenv()
@@ -70,6 +70,11 @@ contains = phrases["contains"]
 endswith = phrases["endswith"]
 ordered = phrases["ordered"]
 mentions = phrases["mention"]
+
+
+# チャンネル数の読み込み
+message_counts = load_json("message_count.json")
+
 
 
 # インテントの生成
@@ -119,12 +124,16 @@ async def on_message(message):
         return
 
     user_name = get_user_name(message,names)
+    channel_id = str(message.channel.id)
+    if channel_id in message_counts:
+        message_counts[channel_id] += 1
+        save_message_counts("message_count.json", message_counts)
 
     if bot.user in message.mentions:
         await mention_reply(message,mentions,user_name)
         return
 
-    if message.channel.id not in ACTIVE_CHANNELS:
+    if channel_id not in ACTIVE_CHANNELS:
         # 確率で反応しない
         if random.random() >= REPLY_PROBABILITY:
             return
@@ -199,6 +208,9 @@ async def on_ready():
                 message_builder=build_daily_message,
             )
         )
+
+    
+    #await initialize_message_counts(bot, message_counts, "message_count.json")
     print(f"ログインしました: {bot.user}")
 
 
