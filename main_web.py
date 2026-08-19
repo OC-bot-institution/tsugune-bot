@@ -2,10 +2,6 @@ import discord
 import os
 from dotenv import load_dotenv
 from extract_phrase import extract_phrase
-from message_count import (
-    initialize_message_counts,
-    save_message_counts
-)
 
 from discord.ext import commands
 import asyncio
@@ -24,9 +20,9 @@ from bot_common.util import (
     load_common_json,
     load_json,
 )
+from bot_common.change_icon import change_icon
 from bot_common.daily_message import daily_message_loop
 
-from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 #初期設定
 #==============================
@@ -46,8 +42,10 @@ NORMAL_PROBABILITY = 0.12
 NEBOU_PROBABILITY = 0.02
 HAYAI_PROBABILITY = 0.02
 JST = ZoneInfo("Asia/Tokyo")
-daily_message_task = None
 
+#別スレッドタスク設定
+daily_message_task = None
+icon_task = None
 
 # アクティブチャンネル
 ACTIVE_CHANNELS = load_common_json("channels.json")
@@ -55,6 +53,7 @@ ACTIVE_CHANNELS = load_common_json("channels.json")
 # API
 load_dotenv()
 api_key = os.getenv("API_KEY")
+#api_key = os.getenv("TEST_KEY")
 
 bot_status = "awake"
 
@@ -125,9 +124,6 @@ async def on_message(message):
 
     user_name = get_user_name(message,names)
     channel_id = str(message.channel.id)
-    if channel_id in message_counts:
-        message_counts[channel_id] += 1
-        save_message_counts("message_count.json", message_counts)
 
     if bot.user in message.mentions:
         await mention_reply(message,mentions,user_name)
@@ -195,6 +191,7 @@ async def awake(interaction: discord.Interaction,):
 @bot.event
 async def on_ready():
     global daily_message_task
+    global icon_task
     await bot.tree.sync()
 
     if daily_message_task is None or daily_message_task.done():
@@ -208,11 +205,11 @@ async def on_ready():
                 message_builder=build_daily_message,
             )
         )
-
-    
-    #await initialize_message_counts(bot, message_counts, "message_count.json")
+    if icon_task is None or icon_task.done():
+        icon_task = asyncio.create_task(
+            change_icon(bot,"icons")
+        )
     print(f"ログインしました: {bot.user}")
-
 
 
 # クライアントの実行
