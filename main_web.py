@@ -2,47 +2,80 @@ import discord
 import os
 from dotenv import load_dotenv
 from extract_phrase import extract_phrase
-from special_reply import init,special_reply_exact,special_reply_contains,special_reply_endswith,special_reply_ordered,mention_reply
 
 from discord.ext import commands
-from discord.ext import tasks
 import asyncio
 import random
-from util import load_json
 
+from bot_common.special_reply import (
+    get_user_name,
+    special_reply_exact,
+    special_reply_contains,
+    special_reply_endswith,
+    special_reply_ordered,
+    mention_reply,
+)
 
-from datetime import datetime, timedelta
+from bot_common.util import (
+    load_common_json,
+    load_json,
+)
+from bot_common.change_icon import change_icon
+from bot_common.daily_message import daily_message_loop
+
 from zoneinfo import ZoneInfo
 #初期設定
 #==============================
+
+# 基本の反応確率
 REPLY_PROBABILITY = 0.1
 
 
 # 毎日おはよう設定
-TARGET_CHANNEL_IDS = [
-    123456789012345678,
-    234567890123456789,
-    345678901234567890,
-]
+ohayou_channels = load_common_json("ohayou_channels.json")
+TARGET_CHANNEL_IDS = {
+    int(channel_id)
+    for channel_id in ohayou_channels
+}
+
 NORMAL_PROBABILITY = 0.12
 NEBOU_PROBABILITY = 0.02
 HAYAI_PROBABILITY = 0.02
-
 JST = ZoneInfo("Asia/Tokyo")
-#==============================
 
-channels = load_json("channels.json")
-ACTIVE_CHANNELS = {
-    int(channel_id)
-    for channel_id in channels
-}
+#別スレッドタスク設定
 daily_message_task = None
+icon_task = None
+
+# アクティブチャンネル
+ACTIVE_CHANNELS = load_common_json("channels.json")
 gurahamu_task = None
 
+# API
 load_dotenv()
 api_key = os.getenv("API_KEY")
+#api_key = os.getenv("TEST_KEY")
 
 bot_status = "awake"
+
+
+
+# 読み込み
+phrases = load_json("phrases.json")
+keywords = load_common_json("keywords.json")
+names = load_common_json("users.json")
+
+exact = phrases["exact"]
+contains = phrases["contains"]
+endswith = phrases["endswith"]
+ordered = phrases["ordered"]
+mentions = phrases["mention"]
+
+
+# チャンネル数の読み込み
+message_counts = load_json("message_count.json")
+
+
 
 # インテントの生成
 intents = discord.Intents.default()
@@ -66,82 +99,35 @@ async def gurahamu_message():
         await asyncio.sleep(wait_seconds)
         
 
+#==============================
 
 
+async def send_daily_message(text: str):
+    channel_id = random.choice(TARGET_CHANNEL_IDS)
+    channel = bot.get_channel(channel_id)
 
-# 決まった時間の固定メッセージ
-# 時間も、基準の時間から±30分ぐらい前後してランダムに選びたい
-async def daily_message():
-    while True:
-        now = datetime.now(JST)
+    if channel is None:
+        print(f"チャンネルが見つかりません: {channel_id}")
+        return
 
-        # 今日の07:00を基準にする
-        base_time = now.replace(
-            hour=7,
-            minute=0,
-            second=0,
-            microsecond=0
-        )
+    await channel.send(text)
 
-        status = "none"
-        probability = random.random()
+def build_daily_message(status: str) -> str:
+    phrase = random.choice(
+        [
+            "おはつぐ～！！",
+            "おはつぐ！",
+            "おはつぐ☀️",
+        ]
+    )
 
-        # 寝坊
-        if probability < NEBOU_PROBABILITY:
-            offset = random.randint(180, 210)
-            status = "nebou"
+    if status == "nebou":
+        phrase += "（大寝坊して無事終了）"
 
-        # 早起き
-        elif probability < NEBOU_PROBABILITY + HAYAI_PROBABILITY:
-            offset = random.randint(-210, -180)
-            status = "hayai"
+    elif status == "hayai":
+        phrase += "（ありえない時間に目が覚めすぎている）"
 
-        # 通常
-        elif probability < (
-            NEBOU_PROBABILITY
-            + HAYAI_PROBABILITY
-            + NORMAL_PROBABILITY
-        ):
-            offset = random.randint(-30, 30)
-            status = "normal"
-
-        # それ以外は送信しない
-        else:
-            offset = random.randint(-30, 30)
-            status = "none"
-
-        target = base_time + timedelta(minutes=offset)
-        # すでに実行時刻を過ぎていたら明日の07:00を基準にする
-        if target <= now:
-            target += timedelta(days=1)
-
-        # 次回実行まで待つ
-        wait_seconds = (target - now).total_seconds()
-
-        print(
-            f"次回の定期メッセージ: "
-            f"{target.strftime('%Y-%m-%d %H:%M:%S')}"
-            f"status : {status}"
-        )
-
-        await asyncio.sleep(wait_seconds)
-
-        # チャンネルをランダムに1つ選択
-        channel_id = random.choice(TARGET_CHANNEL_IDS)
-        channel = bot.get_channel(channel_id)
-
-        if channel is None:
-            print(f"チャンネルが見つかりません: {channel_id}")
-            continue
-
-        phrase = random.choice(
-            ["おはつぐ～！！","おはつぐ！","おはつぐ☀️"]
-        )
-        if status == "nebou":
-            phrase += "（大寝坊して無事終了）"
-        elif status == "hayai":
-            phrase += "（ありえない時間に目が覚めすぎている）"
-        await channel.send(phrase)
+    return phrase
 
 # メッセージを受信した時に呼ばれる
 @bot.event
@@ -151,22 +137,25 @@ async def on_message(message):
     if bot_status == "sleep":
         return
 
-    init(message)
-    if bot.user in message.mentions:
-        await mention_reply(message)
+    user_name = get_user_name(message,names)
+    channel_id = str(message.channel.id)
 
-    if message.channel.id not in ACTIVE_CHANNELS:
+    if bot.user in message.mentions:
+        await mention_reply(message,mentions,user_name)
+        return
+
+    if channel_id not in ACTIVE_CHANNELS:
         # 確率で反応しない
         if random.random() >= REPLY_PROBABILITY:
             return
 
-    if await special_reply_exact(message):
+    if await special_reply_exact(message,exact,keywords,user_name):
         return
-    if await special_reply_contains(message):
+    if await special_reply_contains(message,contains,keywords,user_name):
         return
-    if await special_reply_endswith(message):
+    if await special_reply_endswith(message,endswith,keywords,user_name):
         return
-    if await special_reply_ordered(message):
+    if await special_reply_ordered(message,ordered,keywords,user_name):
         return
 
 
@@ -217,16 +206,26 @@ async def awake(interaction: discord.Interaction,):
 @bot.event
 async def on_ready():
     global daily_message_task
+    global icon_task
     global gurahamu_task
     await bot.tree.sync()
 
     if daily_message_task is None or daily_message_task.done():
-        daily_message_task = asyncio.create_task(daily_message())
-
-    if gurahamu_task is None or gurahamu_task.done():
-        gurahamu_task = asyncio.create_task(gurahamu_message())
+        daily_message_task = asyncio.create_task(
+            daily_message_loop(
+                send_message=send_daily_message,
+                timezone=JST,
+                normal_probability=NORMAL_PROBABILITY,
+                nebou_probability=NEBOU_PROBABILITY,
+                hayai_probability=HAYAI_PROBABILITY,
+                message_builder=build_daily_message,
+            )
+        )
+    if icon_task is None or icon_task.done():
+        icon_task = asyncio.create_task(
+            change_icon(bot,"icons")
+        )
     print(f"ログインしました: {bot.user}")
-
 
 
 # クライアントの実行
