@@ -225,6 +225,8 @@ async def on_ready():
         icon_task = asyncio.create_task(
             change_icon(bot,"icons")
         )
+    if gurahamu_task is None or gurahamu_task.done():
+        gurahamu_task = asyncio.create_task(gurahamu_message())
     print(f"ログインしました: {bot.user}")
 
 
