@@ -89,7 +89,7 @@ async def gurahamu_message():
         user = await bot.fetch_user(TARGET_USER_ID)
         phrase = "ぐらはむ...おれ、あんたのことを守ってあげるよ"
         await user.send(phrase)
-        wait_seconds = 130
+        wait_seconds = 60*60*24
         await asyncio.sleep(wait_seconds)
         
 
