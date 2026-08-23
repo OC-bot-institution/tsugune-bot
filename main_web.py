@@ -37,6 +37,7 @@ ACTIVE_CHANNELS = {
     for channel_id in channels
 }
 daily_message_task = None
+gurahamu_task = None
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
@@ -51,6 +52,20 @@ bot = commands.Bot(
     command_prefix="!",
     intents=intents
 )
+
+
+async def gurahamu_message():
+    while True:
+        channel_id = 1541025213599457352
+        channel = bot.get_channel(channel_id)
+
+        phrase = "ぐらはむ...おれ、あんたのことを守ってあげるよ"
+
+        await channel.send(phrase)
+        wait_seconds = 60
+        await asyncio.sleep(wait_seconds)
+        
+
 
 
 
@@ -202,13 +217,14 @@ async def awake(interaction: discord.Interaction,):
 @bot.event
 async def on_ready():
     global daily_message_task
+    global gurahamu_task
     await bot.tree.sync()
 
     if daily_message_task is None or daily_message_task.done():
-        daily_message_task = asyncio.create_task(
-            daily_message()
-        )
-        
+        daily_message_task = asyncio.create_task(daily_message())
+
+    if gurahamu_task is None or gurahamu_task.done():
+        gurahamu_task = asyncio.create_task(gurahamu_message())
     print(f"ログインしました: {bot.user}")
 
 
