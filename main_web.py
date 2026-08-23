@@ -72,10 +72,6 @@ ordered = phrases["ordered"]
 mentions = phrases["mention"]
 
 
-# チャンネル数の読み込み
-message_counts = load_json("message_count.json")
-
-
 
 # インテントの生成
 intents = discord.Intents.default()
