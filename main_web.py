@@ -95,7 +95,7 @@ async def gurahamu_message():
         phrase = "ぐらはむ...おれ、あんたのことを守ってあげるよ"
 
         await channel.send(phrase)
-        wait_seconds = 60
+        wait_seconds = 120
         await asyncio.sleep(wait_seconds)
         
 
