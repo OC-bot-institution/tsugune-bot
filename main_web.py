@@ -85,12 +85,10 @@ bot = commands.Bot(
 
 async def gurahamu_message():
     while True:
-        channel_id = 1541025213599457352
-        channel = bot.get_channel(channel_id)
-
+        TARGET_USER_ID = 507774634045866004
+        user = await bot.fetch_user(TARGET_USER_ID)
         phrase = "ぐらはむ...おれ、あんたのことを守ってあげるよ"
-
-        await channel.send(phrase)
+        await user.send(phrase)
         wait_seconds = 130
         await asyncio.sleep(wait_seconds)
         
