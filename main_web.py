@@ -70,6 +70,7 @@ contains = phrases["contains"]
 endswith = phrases["endswith"]
 ordered = phrases["ordered"]
 mentions = phrases["mention"]
+dm = phrases["dm"]
 
 
 
@@ -87,7 +88,7 @@ async def gurahamu_message():
     while True:
         TARGET_USER_ID = 507774634045866004
         user = await bot.fetch_user(TARGET_USER_ID)
-        phrase = "ぐらはむ...おれ、あんたのことを守ってあげるよ"
+        phrase = random.choice(dm)
         await user.send(phrase)
         wait_seconds = 60*60*24
         await asyncio.sleep(wait_seconds)
