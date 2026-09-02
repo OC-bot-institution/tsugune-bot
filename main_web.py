@@ -54,7 +54,8 @@ gurahamu_task = None
 # API
 load_dotenv()
 api_key = os.getenv("API_KEY")
-#api_key = os.getenv("TEST_KEY")
+
+YOISAME = 1534778141627912235
 
 bot_status = "awake"
 
@@ -71,7 +72,7 @@ endswith = phrases["endswith"]
 ordered = phrases["ordered"]
 mentions = phrases["mention"]
 dm = phrases["dm"]
-
+yoisame_words = phrases["yoisame"]
 
 
 # インテントの生成
@@ -124,11 +125,16 @@ def build_daily_message(status: str) -> str:
 
     return phrase
 
+async def special_talk(message):
+    await message.channel.send("テスト")
+
 # メッセージを受信した時に呼ばれる
 @bot.event
 async def on_message(message):
     if message.author.bot:
-        return
+        if message.author.id == YOISAME:
+            yoisame_name = "らいな"
+            await special_reply_contains(message,yoisame_words,keywords,yoisame_name)
     if bot_status == "sleep":
         return
 
