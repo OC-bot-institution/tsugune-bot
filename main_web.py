@@ -132,10 +132,10 @@ async def special_talk(message):
 @bot.event
 async def on_message(message):
     if message.author.bot:
-        print(message.author.id)
-        if message.author.id == YOISAME:
+        if int(message.author.id) == YOISAME:
+            print("aaa")
             yoisame_name = "らいな"
-            await special_reply_contains(message,yoisame_words,keywords,yoisame_name)
+            await special_reply_contains(message,contains,keywords,yoisame_name)
         return
     if bot_status == "sleep":
         return
