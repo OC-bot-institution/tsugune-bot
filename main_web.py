@@ -135,6 +135,7 @@ async def on_message(message):
         if message.author.id == YOISAME:
             yoisame_name = "らいな"
             await special_reply_contains(message,yoisame_words,keywords,yoisame_name)
+        return
     if bot_status == "sleep":
         return
 
