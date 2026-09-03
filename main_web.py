@@ -132,6 +132,7 @@ async def special_talk(message):
 @bot.event
 async def on_message(message):
     if message.author.bot:
+        print(message.author.id)
         if message.author.id == YOISAME:
             yoisame_name = "らいな"
             await special_reply_contains(message,yoisame_words,keywords,yoisame_name)
