@@ -132,6 +132,7 @@ async def special_talk(message):
 @bot.event
 async def on_message(message):
     if message.author.bot:
+        return
         if int(message.author.id) == YOISAME:
             print("aaa")
             yoisame_name = "らいな"
