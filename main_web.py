@@ -21,7 +21,6 @@ from bot_common.util import (
     load_json,
 )
 from bot_common.change_icon import change_icon
-from bot_common.daily_message import daily_message_loop
 
 from zoneinfo import ZoneInfo
 #初期設定
