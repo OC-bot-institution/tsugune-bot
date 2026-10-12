@@ -23,7 +23,7 @@ from bot_common.util import (
 from bot_common.change_icon import change_icon
 
 from zoneinfo import ZoneInfo
-#初期設定
+
 #==============================
 
 # 基本の反応確率
