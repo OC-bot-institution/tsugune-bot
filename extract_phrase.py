@@ -3,7 +3,11 @@ from sudachipy import Dictionary
 tokenizer = Dictionary().create()
 
 EXCLUDED_PREFIXES = {"」","くん","の","いな","こと","み","ちゃん","ら","さん"}
+SPECIAL_TEXT = ["ハムをはむはむする","はむをはむはむする",]
 def extract_phrase(text: str):
+    for t in SPECIAL_TEXT:
+        if t in text:
+            return t
     tokens = list(tokenizer.tokenize(text))
 
     for i in range(1, len(tokens) - 1):
