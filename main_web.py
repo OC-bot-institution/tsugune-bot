@@ -24,7 +24,7 @@ from bot_common.change_icon import change_icon
 
 from zoneinfo import ZoneInfo
 
-#==============================
+#==============================#
 
 # 基本の反応確率
 REPLY_PROBABILITY = 0.1
